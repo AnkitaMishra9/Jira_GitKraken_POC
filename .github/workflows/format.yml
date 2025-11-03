@@ -1,0 +1,36 @@
+name: Standardise All the Things
+on: [push]
+
+jobs:
+  standardruby:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: write
+    steps:
+    - name: Standard Ruby
+      uses: standardrb/standard-ruby-action@v1
+
+  standardjs:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - name: Install dependencies
+      run: npm ci
+    - name: Run StandardJS
+      run: npx standard --ignore '**/daisyui*.js'
+    - name: Autofix StandardJS issues
+      if: failure()
+      run: |
+        npx standard --fix --ignore '**/daisyui*.js'
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -am "Autofix StandardJS issues" || echo "No changes to commit"
+        git push
